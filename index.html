@@ -139,6 +139,7 @@
 </div>
 
 <script>
+  // These UUIDs match your Teacher APK configuration
   const ROOM_SERVICE_UUID = '8ce255c0-200a-11e0-ac64-0800200c9a66';
   const DATA_CHAR_UUID    = '8ce255c1-200a-11e0-ac64-0800200c9a66';
 
@@ -157,7 +158,7 @@
       return;
     }
 
-    // Standardize the payload format to match what the Kotlin app expects ("NAME|ROLLNO")
+    // Payload format: "NAME|ROLLNO"
     const structuredPayload = `${name}|${roll}`;
 
     actionBtn.disabled = true;
@@ -165,23 +166,23 @@
     displayLog("Searching for active classroom transmission beacon...");
 
     try {
-      // 1. Scan for the specific BLE Service UUID being broadcast by the teacher's app
+      // 1. Scan for the specific BLE Service broadcast by the Teacher APK
       const bleDevice = await navigator.bluetooth.requestDevice({
         filters: [{ services: [ROOM_SERVICE_UUID] }]
       });
 
-      displayLog(`Target acquired: ${bleDevice.name}. Synchronizing transmission channels...`);
+      displayLog(`Target acquired: ${bleDevice.name}. Synchronizing...`);
       
-      // 2. Connect to the GATT Server on the teacher's phone (No OS pairing required!)
+      // 2. Connect to the GATT Server
       const gattServer = await bleDevice.gatt.connect();
 
-      displayLog("Channel established. Pushing localized encryption credentials...");
+      displayLog("Channel established. Pushing credentials...");
       
-      // 3. Look up the designated Service and Characteristic
+      // 3. Get the Primary Service and Characteristic
       const primaryService = await gattServer.getPrimaryService(ROOM_SERVICE_UUID);
       const outputCharacteristic = await primaryService.getCharacteristic(DATA_CHAR_UUID);
 
-      // 4. Encode and send the payload
+      // 4. Encode and send the data
       const textEncoder = new TextEncoder();
       const rawBinaryPacket = textEncoder.encode(structuredPayload);
       
@@ -189,14 +190,14 @@
 
       displayLog("✅ Acknowledgement token verified successfully!");
       
-      // Disconnect cleanly so other students can connect right away
+      // 5. Clean up
       setTimeout(() => { gattServer.disconnect(); }, 500);
 
-      // Transition smoothly to the success UI screen layout
+      // Success UI
       document.getElementById('mainLayout').style.display = 'none';
       const successScreen = document.getElementById('successScreen');
       successScreen.style.display = 'flex';
-      document.getElementById('successMessage').innerText = `${name} (${roll}) — Verified present on system server log.`;
+      document.getElementById('successMessage').innerText = `${name} (${roll}) — Verified present on teacher's Bluetooth Feed.`;
 
     } catch (bleError) {
       console.error(bleError);
