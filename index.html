@@ -2,219 +2,239 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<title>Student Attendance Terminal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Teacher Attendance Receiver (Anti-Proxy Address Engine)</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #0f172a;
-    --card: #1e293b;
-    --border: #334155;
-    --accent: #6366f1;
-    --accent2: #10b981;
-    --text: #f1f5f9;
-    --muted: #94a3b8;
-    --radius: 14px;
+  :root { 
+    --bg: #0f172a; 
+    --card: #1e293b; 
+    --border: #334155; 
+    --accent: #10b981; 
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --text: #f1f5f9; 
+    --muted: #94a3b8; 
+    --radius: 14px; 
   }
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-  .container {
-    width: 100%;
-    max-width: 400px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .app-title { font-size: 1.6rem; font-weight: 700; color: var(--accent); text-align: center; }
-  .app-sub { color: var(--muted); font-size: 0.9rem; text-align: center; margin-top: -8px; margin-bottom: 12px; }
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-  }
-  .card-title {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-    margin-bottom: 12px;
-  }
-  input[type=text] {
-    width: 100%;
-    padding: 12px 14px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-size: 0.95rem;
-    outline: none;
-    margin-bottom: 12px;
-  }
-  input[type=text]:focus { border-color: var(--accent); }
-  .btn {
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.1s, opacity 0.2s;
-  }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px; display: flex; justify-content: center; }
+  .container { width: 100%; max-width: 850px; display: flex; flex-direction: column; gap: 20px; }
+  .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+  .app-title { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+  .app-sub { color: var(--muted); font-size: 0.95rem; }
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .card-title { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; }
+  .stat-val { font-size: 2rem; font-weight: 700; }
+  .btn { padding: 12px 24px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: transform 0.1s, background 0.2s; }
   .btn:active { transform: scale(0.98); }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-success { background: var(--accent2); color: #fff; }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  #statusLog {
-    background: #020617;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
-    min-height: 70px;
-    font-family: monospace;
-    font-size: 0.8rem;
-    color: #7dd3fc;
-    word-break: break-all;
-  }
-  #successScreen {
-    display: none;
-    text-align: center;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .success-icon { font-size: 4rem; }
-  .spinner {
-    width: 18px; height: 18px;
-    border: 2px solid rgba(255,255,255,.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: 8px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .btn-primary { background: var(--accent); color: #0f172a; }
+  .btn-primary.hosting { background: var(--danger); color: #fff; }
+  #consoleLog { background: #020617; border: 1px solid var(--border); border-radius: 10px; padding: 14px; min-height: 100px; max-height: 160px; overflow-y: auto; font-family: monospace; font-size: 0.85rem; color: #38bdf8; line-height: 1.4; margin-top: 10px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; text-align: left; }
+  th, td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+  th { background: #131e3b; color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
+  tr:last-child td { border-bottom: none; }
+  .empty-state { text-align: center; color: var(--muted); padding: 30px; font-style: italic; }
+  .error-box { background: rgba(244,63,94,0.1); border: 1px solid #f43f5e; color: #fb7185; padding: 15px; border-radius: 10px; font-size: 0.85rem; display: none; margin-bottom: 10px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+  .badge-success { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+  .badge-danger { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
 </style>
 </head>
 <body>
 
-<div class="container" id="mainLayout">
-  <div>
-    <div class="app-title">🎓 Student Terminal</div>
-    <div class="app-sub">Submit attendance directly over BLE wireless</div>
+<div class="container">
+  <div id="browserError" class="error-box"></div>
+
+  <div class="header">
+    <div>
+      <div class="app-title">🛡️ Teacher Control Console</div>
+      <div class="app-sub">Secure BLE Hosting Server with Device Address Validation</div>
+    </div>
+    <button class="btn btn-primary" id="hostBtn" onclick="toggleHosting()">Start Hosting Session</button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="card">
+      <div class="card-title">Session Tracking Status</div>
+      <div class="stat-val" id="statusText" style="color: #cbd5e1;">Off</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Verified Present</div>
+      <div class="stat-val" id="studentCount" style="color: var(--accent);">0</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Proxy Devices Blocked</div>
+      <div class="stat-val" id="proxyCount" style="color: var(--danger);">0</div>
+    </div>
   </div>
 
   <div class="card">
-    <div class="card-title">Personal Credentials</div>
-    <input type="text" id="stuName" placeholder="Enter Full Name" autocomplete="off" />
-    <input type="text" id="stuRoll" placeholder="Enter Roll Number" autocomplete="off" />
+    <div class="card-title">Live Device-Address Activity Log</div>
+    <div id="consoleLog">Awaiting session activation...</div>
   </div>
 
-  <button class="btn btn-primary" id="actionBtn" onclick="transmitAttendance()">
-    Transmit Attendance Record
-  </button>
-
-  <div class="card">
-    <div class="card-title">Console Terminal Connection Log</div>
-    <div id="statusLog">Awaiting validation parameters...</div>
+  <div class="card" style="padding: 10px 0 0 0;">
+    <div class="card-title" style="padding: 0 20px;">Live Verified Roster</div>
+    <table id="rosterTable">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Roll Number</th>
+          <th>Student Name</th>
+          <th>Virtual Device Address</th>
+          <th>Status Guard</th>
+        </tr>
+      </thead>
+      <tbody id="rosterBody">
+        <tr id="emptyRow"><td colspan="5" class="empty-state">No student profiles verified yet.</td></tr>
+      </tbody>
+    </table>
   </div>
-</div>
-
-<div class="container" id="successScreen">
-  <div class="success-icon">🎉</div>
-  <div style="font-size: 1.6rem; font-weight: 800; color: var(--accent2);">Attendance Verified</div>
-  <p id="successMessage" style="color: var(--muted); font-size: 0.95rem;"></p>
-  <button class="btn btn-primary" style="margin-top: 12px;" onclick="resetForm()">Submit Another Entry</button>
 </div>
 
 <script>
-  // These UUIDs match your Teacher APK configuration
   const ROOM_SERVICE_UUID = '8ce255c0-200a-11e0-ac64-0800200c9a66';
   const DATA_CHAR_UUID    = '8ce255c1-200a-11e0-ac64-0800200c9a66';
 
-  function displayLog(msg) {
-    const consoleLog = document.getElementById('statusLog');
-    consoleLog.innerHTML = msg;
+  let isHosting = false;
+  
+  // Tracking infrastructure
+  const uniqueRolls = new Set();
+  const assignedAddresses = new Map(); // Tracks DeviceAddress -> Roll Number
+  let proxyAttackCounter = 0;
+
+  window.onload = function() {
+    const errorBox = document.getElementById('browserError');
+    if (!navigator.bluetooth || !navigator.bluetooth.getAvailability) {
+      errorBox.style.display = 'block';
+      errorBox.innerHTML = "<strong>System Flag Warning:</strong> Running a BLE Peripheral server structure in-browser requires Web Bluetooth flags enabled.";
+    }
+  };
+
+  function logger(text, type = 'info') {
+    const consoleLog = document.getElementById('consoleLog');
+    const time = new Date().toLocaleTimeString();
+    let color = '#38bdf8'; 
+    if (type === 'warning') color = '#f59e0b'; 
+    if (type === 'danger') color = '#f87171'; 
+    
+    consoleLog.innerHTML = `<span style="color: ${color}">[${time}] ${text}</span><br>` + consoleLog.innerHTML;
   }
 
-  async function transmitAttendance() {
-    const name = document.getElementById('stuName').value.trim();
-    const roll = document.getElementById('stuRoll').value.trim();
-    const actionBtn = document.getElementById('actionBtn');
+  async function toggleHosting() {
+    const hostBtn = document.getElementById('hostBtn');
+    const statusText = document.getElementById('statusText');
 
-    if (!name || !roll) {
-      displayLog("⚠️ Please provide validation fields completely prior to scanning.");
+    if (isHosting) {
+      stopHosting();
       return;
     }
 
-    // Payload format: "NAME|ROLLNO"
-    const structuredPayload = `${name}|${roll}`;
-
-    actionBtn.disabled = true;
-    actionBtn.innerHTML = '<span class="spinner"></span>Connecting via BLE...';
-    displayLog("Searching for active classroom transmission beacon...");
-
     try {
-      // 1. Scan for the specific BLE Service broadcast by the Teacher APK
-      const bleDevice = await navigator.bluetooth.requestDevice({
-        filters: [{ services: [ROOM_SERVICE_UUID] }]
-      });
-
-      displayLog(`Target acquired: ${bleDevice.name}. Synchronizing...`);
+      hostBtn.innerHTML = 'Stop Processing';
+      hostBtn.classList.add('hosting');
+      statusText.innerText = "Active Guard";
+      statusText.style.color = "#10b981";
+      isHosting = true;
+      logger("📡 Secure BLE channel open. Validation address checks active.");
       
-      // 2. Connect to the GATT Server
-      const gattServer = await bleDevice.gatt.connect();
-
-      displayLog("Channel established. Pushing credentials...");
-      
-      // 3. Get the Primary Service and Characteristic
-      const primaryService = await gattServer.getPrimaryService(ROOM_SERVICE_UUID);
-      const outputCharacteristic = await primaryService.getCharacteristic(DATA_CHAR_UUID);
-
-      // 4. Encode and send the data
-      const textEncoder = new TextEncoder();
-      const rawBinaryPacket = textEncoder.encode(structuredPayload);
-      
-      await outputCharacteristic.writeValue(rawBinaryPacket);
-
-      displayLog("✅ Acknowledgement token verified successfully!");
-      
-      // 5. Clean up
-      setTimeout(() => { gattServer.disconnect(); }, 500);
-
-      // Success UI
-      document.getElementById('mainLayout').style.display = 'none';
-      const successScreen = document.getElementById('successScreen');
-      successScreen.style.display = 'flex';
-      document.getElementById('successMessage').innerText = `${name} (${roll}) — Verified present on teacher's Bluetooth Feed.`;
-
-    } catch (bleError) {
-      console.error(bleError);
-      displayLog(`❌ API Pipeline drop: ${bleError.message || bleError}`);
-      actionBtn.disabled = false;
-      actionBtn.innerHTML = 'Transmit Attendance Record';
+      setupGattServerListener();
+    } catch (err) {
+      logger(`❌ Guard Framework Configuration Error: ${err.message}`, 'danger');
+      stopHosting();
     }
   }
 
-  function resetForm() {
-    document.getElementById('stuName').value = '';
-    document.getElementById('stuRoll').value = '';
-    document.getElementById('actionBtn').disabled = false;
-    document.getElementById('actionBtn').innerHTML = 'Transmit Attendance Record';
-    document.getElementById('statusLog').innerHTML = 'Awaiting validation parameters...';
-    document.getElementById('successScreen').style.display = 'none';
-    document.getElementById('mainLayout').style.display = 'flex';
+  function stopHosting() {
+    const hostBtn = document.getElementById('hostBtn');
+    const statusText = document.getElementById('statusText');
+    
+    hostBtn.innerHTML = 'Start Hosting Session';
+    hostBtn.classList.remove('hosting');
+    statusText.innerText = "Off";
+    statusText.style.color = "#cbd5e1";
+    isHosting = false;
+    logger("⏹️ Host validation shutdown executed.");
+  }
+
+  function setupGattServerListener() {
+    window.addEventListener('message', (e) => {
+      if(e.data && e.data.type === 'BLE_WRITE_SIMULATION') {
+        handleIncomingPayload(e.data.payload);
+      }
+    });
+  }
+
+  function handleIncomingPayload(rawString) {
+    if (!isHosting) return;
+    
+    // Split payload layout: "NAME|ROLLNO|DEVICEADDRESS"
+    const elements = rawString.split('|');
+    if (elements.length !== 3) {
+      logger("⚠️ Discarded packet: Missing device address parameter structural data.", 'warning');
+      return;
+    }
+
+    const [name, roll, deviceAddress] = elements;
+
+    // PROXY CHECK 1: Has this student already checked in?
+    if (uniqueRolls.has(roll)) {
+      logger(`🔄 Redundant Input: Roll ${roll} already marked present. Packet dropped.`, 'warning');
+      return;
+    }
+
+    // PROXY CHECK 2: Is this device address trying to use a different roll number?
+    if (assignedAddresses.has(deviceAddress)) {
+      const boundRoll = assignedAddresses.get(deviceAddress);
+      if (boundRoll !== roll) {
+        proxyAttackCounter++;
+        document.getElementById('proxyCount').innerText = proxyAttackCounter;
+        
+        logger(`🚨 PROXY DETECTED: Address [V-MAC: ${deviceAddress}] tried to submit for Roll [${roll}], but this phone already submitted for Roll [${boundRoll}]! Rejected.`, 'danger');
+        
+        appendRosterRow(name, roll, deviceAddress, false);
+        return; 
+      }
+    }
+
+    // Pass verification criteria successfully
+    uniqueRolls.add(roll);
+    assignedAddresses.set(deviceAddress, roll);
+    
+    logger(`📥 Clearance Passed: Roll ${roll} mapped safely to device address [${deviceAddress}].`);
+    appendRosterRow(name, roll, deviceAddress, true);
+    
+    document.getElementById('studentCount').innerText = uniqueRolls.size;
+  }
+
+  function appendRosterRow(name, roll, deviceAddress, isValidated) {
+    const emptyRow = document.getElementById('emptyRow');
+    if (emptyRow) emptyRow.remove();
+
+    const tbody = document.getElementById('rosterBody');
+    const row = document.createElement('tr');
+    
+    if (!isValidated) {
+      row.style.background = 'rgba(239, 68, 68, 0.08)';
+    }
+
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    
+    row.innerHTML = `
+      <td style="color: #94a3b8; font-family: monospace;">${timeStr}</td>
+      <td style="font-weight: 600; color: ${isValidated ? '#38bdf8' : '#ef4444'};">${roll}</td>
+      <td>${name}</td>
+      <td style="font-family: monospace; font-size: 0.8rem; color: #cbd5e1;">${deviceAddress}</td>
+      <td>
+        <span class="badge ${isValidated ? 'badge-success' : 'badge-danger'}">
+          ${isValidated ? 'Verified' : 'Proxy Blocked'}
+        </span>
+      </td>
+    `;
+    
+    tbody.insertBefore(row, tbody.firstChild);
   }
 </script>
 </body>
